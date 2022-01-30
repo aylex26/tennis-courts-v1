@@ -1,36 +1,52 @@
 package com.tenniscourts.reservations;
 
-import com.tenniscourts.schedules.Schedule;
-import org.junit.Assert;
-import org.junit.FixMethodOrder;
+import com.tenniscourts.exceptions.EntityNotFoundException;
+import com.tenniscourts.guests.GuestRepository;
+import com.tenniscourts.schedules.ScheduleRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.util.Optional;
 
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+import static org.mockito.Mockito.when;
+
 @SpringBootTest
 @RunWith(MockitoJUnitRunner.class)
 @ContextConfiguration(classes = ReservationService.class)
 public class ReservationServiceTest {
-
+    public static final long ID = 1L;
     @InjectMocks
     ReservationService reservationService;
+    @Mock
+    ReservationRepository reservationRepository;
+    @Mock
+    GuestRepository guestRepository;
+    @Mock
+    ScheduleRepository scheduleRepository;
+    @Mock
+    ReservationMapper reservationMapper;
 
-    @Test
-    public void getRefundValueFullRefund() {
-        Schedule schedule = new Schedule();
+    @Test(expected = EntityNotFoundException.class)
+    public void shouldThrowException() {
+        CreateReservationRequestDTO createReservationRequestDTO = CreateReservationRequestDTO.builder().guestId(ID).build();
+        when(guestRepository.findById(ID)).thenReturn(Optional.empty());
+        reservationService.bookReservation(createReservationRequestDTO);
+    }
 
-        LocalDateTime startDateTime = LocalDateTime.now().plusDays(2);
+    @Test(expected = EntityNotFoundException.class)
+    public void shouldThrowExceptionWhenReservationNotFound() {
+        when(reservationRepository.findById(ID)).thenReturn(Optional.empty());
+        reservationService.findReservation(ID);
+    }
 
-        schedule.setStartDateTime(startDateTime);
-
-        Assert.assertEquals(reservationService.getRefundValue(Reservation.builder().schedule(schedule).value(new BigDecimal(10L)).build()), new BigDecimal(10));
+    @Test(expected = EntityNotFoundException.class)
+    public void shouldThrowExceptionWhenCancelReservationNotFound() {
+        when(reservationRepository.findById(ID)).thenReturn(Optional.empty());
+        reservationService.cancelReservation(ID);
     }
 }

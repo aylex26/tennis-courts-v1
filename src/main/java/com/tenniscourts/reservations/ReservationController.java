@@ -2,26 +2,36 @@ package com.tenniscourts.reservations;
 
 import com.tenniscourts.config.BaseRestController;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @AllArgsConstructor
+@RestController
+@RequestMapping(path = "api/reservation")
 public class ReservationController extends BaseRestController {
 
     private final ReservationService reservationService;
 
-    public ResponseEntity<Void> bookReservation(CreateReservationRequestDTO createReservationRequestDTO) {
-        return ResponseEntity.created(locationByEntity(reservationService.bookReservation(createReservationRequestDTO).getId())).build();
+    @PostMapping("/book")
+    public ResponseEntity<List<ReservationDTO>> bookReservation(@RequestBody CreateReservationRequestDTO reservationDTO) {
+        return new ResponseEntity<>(reservationService.bookReservation(reservationDTO), HttpStatus.CREATED);
     }
 
-    public ResponseEntity<ReservationDTO> findReservation(Long reservationId) {
-        return ResponseEntity.ok(reservationService.findReservation(reservationId));
+    @GetMapping("/{id}")
+    public ResponseEntity<ReservationDTO> findReservation(@PathVariable("id") Long id) {
+        return ResponseEntity.ok(reservationService.findReservation(id));
     }
 
-    public ResponseEntity<ReservationDTO> cancelReservation(Long reservationId) {
-        return ResponseEntity.ok(reservationService.cancelReservation(reservationId));
+    @PostMapping("/cancel/{id}")
+    public ResponseEntity<ReservationDTO> cancelReservation(@PathVariable("id") Long id) {
+        return ResponseEntity.ok(reservationService.cancelReservation(id));
     }
 
-    public ResponseEntity<ReservationDTO> rescheduleReservation(Long reservationId, Long scheduleId) {
+    @PostMapping("/reschedule")
+    public ResponseEntity<ReservationDTO> rescheduleReservation(@RequestParam Long reservationId, @RequestParam Long scheduleId) {
         return ResponseEntity.ok(reservationService.rescheduleReservation(reservationId, scheduleId));
     }
 }

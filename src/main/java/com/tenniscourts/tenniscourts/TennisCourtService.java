@@ -9,25 +9,26 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class TennisCourtService {
 
+    public static final String COURT_NOT_FOUND = "Court not found.";
     private final TennisCourtRepository tennisCourtRepository;
-
     private final ScheduleService scheduleService;
-
     private final TennisCourtMapper tennisCourtMapper;
 
-    public TennisCourtDTO addTennisCourt(TennisCourtDTO tennisCourt) {
-        return tennisCourtMapper.map(tennisCourtRepository.saveAndFlush(tennisCourtMapper.map(tennisCourt)));
+    public TennisCourtDTO addTennisCourt(TennisCourtDTO court) {
+        return tennisCourtMapper.map(tennisCourtRepository.save(tennisCourtMapper.map(court)));
     }
 
-    public TennisCourtDTO findTennisCourtById(Long id) {
-        return tennisCourtRepository.findById(id).map(tennisCourtMapper::map).orElseThrow(() -> {
-            throw new EntityNotFoundException("Tennis Court not found.");
-        });
-    }
-
-    public TennisCourtDTO findTennisCourtWithSchedulesById(Long tennisCourtId) {
-        TennisCourtDTO tennisCourtDTO = findTennisCourtById(tennisCourtId);
-        tennisCourtDTO.setTennisCourtSchedules(scheduleService.findSchedulesByTennisCourtId(tennisCourtId));
+    public TennisCourtDTO findTennisCourtById(Long id, boolean withSchedule) {
+        TennisCourtDTO tennisCourtDTO = findTennisCourtById(id);
+        if (withSchedule) {
+            tennisCourtDTO.setTennisCourtSchedules(scheduleService.findSchedulesByTennisCourtId(id));
+        }
         return tennisCourtDTO;
+    }
+
+    private TennisCourtDTO findTennisCourtById(Long id) {
+        return tennisCourtRepository.findById(id).map(tennisCourtMapper::map).orElseThrow(() -> {
+            throw new EntityNotFoundException(COURT_NOT_FOUND);
+        });
     }
 }
